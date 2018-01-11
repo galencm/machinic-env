@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+<environment name="machinic">
+    <!-- os packages
+    <include name="thing" system="dnf" />
+    <include name="thing" system="apt" />
+    -->
+    <include name="firewalld" system="dnf" />
+    <include name="firewalld" system="apt" />
+
+    <!-- python packages -->
+
+    <!-- linux_x86_64 
+        x86_64 
+        linux_amd64 
+        linux_arm
+    -->
+    <!-- dl and install -->
+    <include name="consul"
+            system="linux_amd64"
+            url="https://releases.hashicorp.com/consul/1.0.1/consul_1.0.1_linux_amd64.zip"
+            command="copy install nodir"
+            file="consul" />
+
+    <include name="nomad"
+            system="linux_amd64"
+            url="https://releases.hashicorp.com/nomad/0.7.0/nomad_0.7.0_linux_amd64.zip"
+            command="copy install nodir"
+            file="nomad" />
+
+    <include name="consul"
+            system="linux_arm"
+            url="https://releases.hashicorp.com/consul/1.0.1/consul_1.0.1_linux_arm.zip"
+            command="copy install nodir"
+            file="consul" />
+
+    <include name="nomad"
+            system="linux_arm"
+            url="https://releases.hashicorp.com/nomad/0.7.0/nomad_0.7.0_linux_arm.zip"
+            command="copy install nodir"
+            file="nomad" />
+
+    <!-- append files with something like 
+        include system="raw" -->
+
+    <!-- configure -bind from xml?
+         no bind for non networked -> 127.0.0.1
+
+         pass interface as env var or nothing for localhost
+        -->
+    <script name = "nomad.service" interface="">
+        [Unit]
+        Description=generic template for nomad
+        After=multi-user.target
+
+        [Service]
+        Type=simple
+
+        ExecStart=/bin/sh -c "nomad agent -server -bootstrap-expect=1 -config=/usr/local/etc/nomad_config.hcl -bind='{{ GetInterfaceIP \"$(script.interface)\" }}'"
+        ExecReload=/bin/kill -HUP $MAINPID
+        Restart=on-failure
+        StandardOutput=journal
+        LimitNOFILE=65536
+
+        [Install]
+        WantedBy=multi-user.target
+    </script>
+    <script name = "consul.service" interface="">
+        [Unit]
+        Description=generic template for consul
+        After=multi-user.target
+
+        [Service]
+        Type=simple
+
+        ExecStart=/bin/sh -c "consul agent -server  -bootstrap-expect=1 -data-dir=/tmp -bind='{{ GetInterfaceIP \"$(script.interface)\" }}'"
+        ExecReload=/bin/kill -HUP $MAINPID
+        Restart=on-failure
+        StandardOutput=journal
+        LimitNOFILE=65536
+
+        [Install]
+        WantedBy=multi-user.target
+    </script>
+    <script name = "machinic_setup_services.sh">
+        #!/bin/bash
+        sudo mkdir /var/lib/nomad/data/ -p
+        sudo sudo cp nomad_config.hcl /usr/local/etc/
+        sudo cp nomad.service /etc/systemd/system/
+        sudo cp consul.service /etc/systemd/system/
+        sudo systemctl daemon-reload
+        sudo systemctl enable consul
+        sudo systemctl enable nomad
+        sudo systemctl start consul
+        sudo systemctl start nomad
+    </script>
+    <script name = "machinic_session_only.sh">
+        #!/bin/bash
+        cp nomad_config.hcl /tmp
+        consul agent -dev  &amp;
+        cd /tmp
+        sudo /usr/local/bin/nomad agent -server -dev -config=nomad_config.hcl  &amp;
+    </script>
+</environment>
