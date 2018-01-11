@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<environment name="machinic">
+<machine>
+<environment name="">
     <!-- os packages
     <include name="thing" system="dnf" />
     <include name="thing" system="apt" />
@@ -44,10 +45,18 @@
 
     <!-- configure -bind from xml?
          no bind for non networked -> 127.0.0.1
-
          pass interface as env var or nothing for localhost
+        interface:enp0s25
+        interface:localhost
+        
+        envgen -a -interface:enp0s25
+        [or none if not passed]
+        envgen -a environment.xml enp0s25
+        would be switches.arg1
+
+        should be doable in one command
         -->
-    <script name = "nomad.service" interface="">
+    <script name = "nomad.service">
         [Unit]
         Description=generic template for nomad
         After=multi-user.target
@@ -55,7 +64,7 @@
         [Service]
         Type=simple
 
-        ExecStart=/bin/sh -c "nomad agent -server -bootstrap-expect=1 -config=/usr/local/etc/nomad_config.hcl -bind='{{ GetInterfaceIP \"$(script.interface)\" }}'"
+        ExecStart=/bin/sh -c "nomad agent -server -bootstrap-expect=1 -config=/usr/local/etc/nomad_config.hcl -bind='{{ GetInterfaceIP \"$(switches.arg1)\" }}'"
         ExecReload=/bin/kill -HUP $MAINPID
         Restart=on-failure
         StandardOutput=journal
@@ -64,7 +73,8 @@
         [Install]
         WantedBy=multi-user.target
     </script>
-    <script name = "consul.service" interface="">
+
+    <script name = "consul.service">
         [Unit]
         Description=generic template for consul
         After=multi-user.target
@@ -72,7 +82,7 @@
         [Service]
         Type=simple
 
-        ExecStart=/bin/sh -c "consul agent -server  -bootstrap-expect=1 -data-dir=/tmp -bind='{{ GetInterfaceIP \"$(script.interface)\" }}'"
+        ExecStart=/bin/sh -c "consul agent -server  -bootstrap-expect=1 -data-dir=/tmp -bind='{{ GetInterfaceIP \"$(switches.arg1)\" }}'"
         ExecReload=/bin/kill -HUP $MAINPID
         Restart=on-failure
         StandardOutput=journal
@@ -81,7 +91,8 @@
         [Install]
         WantedBy=multi-user.target
     </script>
-    <script name = "machinic_setup_services.sh">
+
+    <script name = "machinic_services.sh">
         #!/bin/bash
         sudo mkdir /var/lib/nomad/data/ -p
         sudo sudo cp nomad_config.hcl /usr/local/etc/
@@ -93,11 +104,38 @@
         sudo systemctl start consul
         sudo systemctl start nomad
     </script>
+
     <script name = "machinic_session_only.sh">
         #!/bin/bash
         cp nomad_config.hcl /tmp
         consul agent -dev  &amp;
         cd /tmp
-        sudo /usr/local/bin/nomad agent -server -dev -config=nomad_config.hcl  &amp;
+        sudo /usr/local/bin/nomad agent -server -dev -config=nomad_config.hcl  -bind=$(switches.arg1) &amp;
     </script>
+
+    <script name = "firewall.sh">
+    #!/bin/bash
+    </script>
+
+    <script name = "nomad_config.hcl">
+        log_level = "DEBUG"
+        #data_dir = "/home/$USER/.local/nomad_data"
+        data_dir = "/var/lib/nomad/data"
+        enable_debug = true
+        name = "client1"
+        server {
+          enabled          = true
+          bootstrap_expect = 1
+        }
+        client {
+            enabled = true
+            #servers = ["127.0.0.1:4647"]
+            #node_class = "foo"
+            options {
+                "driver.raw_exec.enable" = "1"
+            }
+        }
+    </script>
+
 </environment>
+</machine>
