@@ -56,7 +56,7 @@
 
         should be doable in one command
         -->
-    <script name = "nomad.service">
+    <script name = "nomad.service" interface="localhost">
         [Unit]
         Description=generic template for nomad
         After=multi-user.target
@@ -64,7 +64,7 @@
         [Service]
         Type=simple
 
-        ExecStart=/bin/sh -c "nomad agent -server -bootstrap-expect=1 -config=/usr/local/etc/nomad_config.hcl -bind='{{ GetInterfaceIP \"$(switches.arg1)\" }}'"
+        ExecStart=/bin/sh -c "nomad agent -server -bootstrap-expect=1 -config=/usr/local/etc/nomad_config.hcl -bind='{{ GetInterfaceIP \"$(interface)\" }}'"
         ExecReload=/bin/kill -HUP $MAINPID
         Restart=on-failure
         StandardOutput=journal
@@ -74,7 +74,7 @@
         WantedBy=multi-user.target
     </script>
 
-    <script name = "consul.service">
+    <script name = "consul.service" interface="localhost">
         [Unit]
         Description=generic template for consul
         After=multi-user.target
@@ -82,7 +82,7 @@
         [Service]
         Type=simple
 
-        ExecStart=/bin/sh -c "consul agent -server  -bootstrap-expect=1 -data-dir=/tmp -bind='{{ GetInterfaceIP \"$(switches.arg1)\" }}'"
+        ExecStart=/bin/sh -c "consul agent -server  -bootstrap-expect=1 -data-dir=/tmp -bind='{{ GetInterfaceIP \"$(interface)\" }}'"
         ExecReload=/bin/kill -HUP $MAINPID
         Restart=on-failure
         StandardOutput=journal
@@ -92,8 +92,11 @@
         WantedBy=multi-user.target
     </script>
 
-    <script name = "machinic_services.sh">
+    <script name = "start-machinic-services.sh">
         #!/bin/bash
+        echo "configuring systemd services for"
+        echo "consul and nomad"
+
         sudo mkdir /var/lib/nomad/data/ -p
         sudo sudo cp nomad_config.hcl /usr/local/etc/
         sudo cp nomad.service /etc/systemd/system/
@@ -105,12 +108,15 @@
         sudo systemctl start nomad
     </script>
 
-    <script name = "machinic_session_only.sh">
+    <script name = "start-machinic-session.sh">
         #!/bin/bash
-        cp nomad_config.hcl /tmp
+        echo "consul and nomad will run in background"
+        echo "but will not be configured as service"
+
+        sudo mkdir /var/lib/nomad/data/ -p
+        sudo sudo cp nomad_config.hcl /usr/local/etc/
         consul agent -dev  &amp;
-        cd /tmp
-        sudo /usr/local/bin/nomad agent -server -dev -config=nomad_config.hcl  -bind=$(switches.arg1) &amp;
+        sudo /usr/local/bin/nomad agent -server -dev -config=/usr/local/etc/nomad_config.hcl -bind=$(interface) &amp;
     </script>
 
     <script name = "firewall.sh">
@@ -129,8 +135,6 @@
         }
         client {
             enabled = true
-            #servers = ["127.0.0.1:4647"]
-            #node_class = "foo"
             options {
                 "driver.raw_exec.enable" = "1"
             }
