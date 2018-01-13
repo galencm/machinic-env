@@ -64,7 +64,7 @@
         [Service]
         Type=simple
 
-        ExecStart=/bin/sh -c "nomad agent -server -bootstrap-expect=1 -config=/usr/local/etc/nomad_config.hcl -bind='{{ GetInterfaceIP \"$(interface)\" }}'"
+        ExecStart=/bin/sh -c "nomad agent -server -bootstrap-expect=1 -config=/usr/local/etc/nomad_config.hcl -bind='{{ GetInterfaceIP \\"$(interface)\\" }}'"
         ExecReload=/bin/kill -HUP $MAINPID
         Restart=on-failure
         StandardOutput=journal
@@ -82,7 +82,7 @@
         [Service]
         Type=simple
 
-        ExecStart=/bin/sh -c "consul agent -server  -bootstrap-expect=1 -data-dir=/tmp -bind='{{ GetInterfaceIP \"$(interface)\" }}'"
+        ExecStart=/bin/sh -c "consul agent -server  -bootstrap-expect=1 -data-dir=/tmp -bind='{{ GetInterfaceIP \\"$(interface)\\" }}'"
         ExecReload=/bin/kill -HUP $MAINPID
         Restart=on-failure
         StandardOutput=journal
