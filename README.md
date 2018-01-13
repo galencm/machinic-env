@@ -5,6 +5,7 @@
 * Scripts to install foundational services for machines
 * Download and install binaries if not found on system using [`bork`](https://github.com/mattly/bork) and `which`
 * Xml model to modify and (re)generate scripts as necessary
+* dogfooded from /env used by machines and `envgen` tooling
 
 Currently 'foundational services' means: 
 
@@ -42,11 +43,6 @@ cd env
 git clone https://github.com/galencm/ma
 cd ~/ma/envgen
 ./envgen.sh ~/machinic-env/environment.xml ~/machinic-env
-```
-
-(Re)generate with key:values from commandline:
-```
-./envgen.sh ~/machinic-env/environment.xml ~/machinic-env ./ENVS interface:eth0
 ```
 
 See what changed after generation:
