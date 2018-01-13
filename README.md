@@ -46,7 +46,6 @@ cd ~/ma/envgen
 
 (Re)generate with key:values from commandline:
 ```
-./envgen.sh ~/machinic-env/environment.xml ~/machinic-env ./ENVS interface:localhost
 ./envgen.sh ~/machinic-env/environment.xml ~/machinic-env ./ENVS interface:eth0
 ```
 

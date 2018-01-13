@@ -6,7 +6,7 @@
         [Service]
         Type=simple
 
-        ExecStart=/bin/sh -c "nomad agent -server -bootstrap-expect=1 -config=/usr/local/etc/nomad_config.hcl -bind='{{ GetInterfaceIP "localhost" }}'"
+        ExecStart=/bin/sh -c "nomad agent -server -bootstrap-expect=1 -config=/usr/local/etc/nomad_config.hcl -bind='{{ GetPrivateIP }}'"
         ExecReload=/bin/kill -HUP $MAINPID
         Restart=on-failure
         StandardOutput=journal
