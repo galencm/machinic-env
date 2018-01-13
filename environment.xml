@@ -92,7 +92,7 @@
         WantedBy=multi-user.target
     </script>
 
-    <script name = "start-machinic-services.sh">
+    <script name = "install-machinic-services.sh">
         #!/bin/bash
         echo "configuring systemd services for"
         echo "consul and nomad"
@@ -106,6 +106,23 @@
         sudo systemctl enable nomad
         sudo systemctl start consul
         sudo systemctl start nomad
+    </script>
+
+    <script name = "uninstall-machinic-services.sh">
+        #!/bin/bash
+        echo "removing systemd services for"
+        echo "consul and nomad"
+
+        services=("nomad" "consul")
+
+        for service in "${services[@]}" ; do
+            systemctl stop $service
+            systemctl disable $service
+            rm /etc/systemd/system/$service.service
+        done
+
+        systemctl daemon-reload
+        systemctl reset-failed
     </script>
 
     <script name = "start-machinic-session.sh">
