@@ -1,28 +1,23 @@
 # README
 
 ## Overview
-* Make initial setup as easy and robust as possible
-* Scripts to install foundational services for machines
-* Download and install binaries if not found on system using [`bork`](https://github.com/mattly/bork) and `which`
-* Xml model to modify and (re)generate scripts as necessary
-* dogfooded from /env used by machines and `envgen` tooling
 
-Currently 'foundational services' means: 
+Install and setup a substrate for machinic machines using [`envgen`](https://github.com/galencm/ma) tooling
+
+A _substrate_ encompasses:
 
 * nomad: 
-    * to schedule and restart processes on failure
-    * to persist processes to be run despite stop/starting of nomad 
+    * to schedule, restart and persist processes
     * to automatically and dynamically assign host and port information if requested (xml attribute: `wireup` )
-    * run nomad via systemd if desired and rest of processes as nomad jobs rather than all processes as systemd services
+    * run nomad(and consul) via systemd and all other processes as nomad jobs rather than creating systemd services for every process
 
 * consul:
     * for service discovery, nomad jobs are automatically discoverable
     * language bindings make service host and port lookups simple
 
-* systemd(optional):
+* systemd:
     * always run nomad/consul as service on startup
-
-By using code generation( [`gsl`](https://github.com/zeromq/gsl) ) other configurations can be easily supported.
+    * a systemd service is optional: see ` start-machinic-session.sh` to run nomad and consul directly
 
 ## Quickstart
 Clone the repo:
@@ -32,13 +27,13 @@ git clone https://github.com/galencm/machinic-env
 
 Start services:
 ```
-cd ~/machinic-ev
+cd ~/machinic-env
 ./environment.sh
 cd env
 ./install-machinic-services.sh
 ```
 
-(Re)generate from xml using [`envgen`](https://github.com/galencm/ma):
+(Re)generate files from `environment.xml` using [`envgen`](https://github.com/galencm/ma) ( which calls [`gsl`](https://github.com/zeromq/gsl) for generation):
 ```
 git clone https://github.com/galencm/ma
 cd ~/ma/envgen
@@ -60,5 +55,3 @@ This project uses the C4 process
 Mozilla Public License, v. 2.0 
 
 [http://mozilla.org/MPL/2.0/](http://mozilla.org/MPL/2.0/)
-
-
